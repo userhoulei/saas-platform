@@ -1,28 +1,7 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /
-
+# 激活开发环境dev（关键）
 spring:
-  # 数据库配置
-  datasource:
-    url: jdbc:mysql://localhost:3306/saas_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  # Redis配置
-  redis:
-    host: localhost
-    port: 6379
-    password: 123456
-    database: 0
-  # RabbitMQ配置
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: admin
-    password: 123456
-    virtual-host: /
+  profiles:
+    active: dev
 
 # MybatisPlus配置
 mybatis-plus:
@@ -44,25 +23,9 @@ knife4j:
   settings:
     language: zh_CN
 
-# MinIO文件存储
-minio:
-  endpoint: http://localhost:9000
-  access-key: minio
-  secret-key: 12345678
-  bucket-name: saas-file
-
-# XXL-JOB配置
-xxl:
-  job:
-    admin-addresses: http://localhost:8081/xxl-job-admin
-    executor:
-      appname: saas-platform-job
-      port: 9998
-
 # 自定义JWT配置
 jwt:
   secret: SaasPlatform2026SecretKey666888GuangZhouJavaSaaS
-  # 过期时间 单位毫秒 2小时
   expire: 7200000
   header: Authorization
   prefix: Bearer
