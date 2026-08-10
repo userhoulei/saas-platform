@@ -1,0 +1,57 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  datasource:
+    url: jdbc:mysql://host.docker.internal:3306/saas_platform?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: host.docker.internal
+    port: 6379
+    password: 123456
+    database: 0
+  rabbitmq:
+    host: host.docker.internal
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.saas.platform.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+knife4j:
+  enable: true
+  settings:
+    language: zh_CN
+
+minio:
+  endpoint: http://host.docker.internal:9000
+  access-key: minio
+  secret-key: 12345678
+  bucket-name: saas-file
+
+xxl:
+  job:
+    admin-addresses: http://host.docker.internal:8081/xxl-job-admin
+    executor:
+      appname: saas-platform-job
+      port: 9998
+
+jwt:
+  secret: SaasPlatformJwtSecretKey2026GuangZhouJava8Year
+  expire: 86400000
