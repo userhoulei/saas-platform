@@ -4,8 +4,12 @@
     <select id="selectPermsByUserId" resultType="java.lang.String">
         SELECT DISTINCT m.perms
         FROM sys_user_role ur
-                 LEFT JOIN sys_role_menu rm ON ur.role_id = rm.role_id AND ur.is_deleted=0 AND rm.is_deleted=0
-                 LEFT JOIN sys_menu m ON rm.menu_id = m.id AND m.is_deleted=0
-        WHERE ur.user_id = #{userId} AND m.perms IS NOT NULL AND m.perms != ''
+                 LEFT JOIN sys_role_menu rm ON ur.role_id = rm.role_id AND ur.is_deleted = 0 AND rm.is_deleted = 0
+                 LEFT JOIN sys_menu m ON rm.menu_id = m.id AND m.is_deleted = 0
+        WHERE ur.user_id = #{userId}
+          AND m.perms IS NOT NULL
+          AND m.perms != ''
     </select>
+    <select id="selectMenuIdsByRoleId" resultType="java.lang.Long"></select>
+    <select id="selectMenusByUserId" resultType="com.cn.saasplatform.entity.system.SysMenu"></select>
 </mapper>

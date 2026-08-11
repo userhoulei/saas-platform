@@ -4,6 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.cn.saasplatform.entity.system.SysUser;
 import com.cn.saasplatform.entity.dto.SysUserDTO;
 
-public interface SysUserService extends IService<SysUser> {
+public interface ISysUserService extends IService<SysUser> {
     void addUser(SysUserDTO dto);
 }

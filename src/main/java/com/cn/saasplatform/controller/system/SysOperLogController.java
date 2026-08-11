@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cn.saasplatform.entity.system.SysOperLog;
 import com.cn.saasplatform.entity.resp.Result;
-import com.cn.saasplatform.service.system.SysOperLogService;
+import com.cn.saasplatform.service.system.ISysOperLogService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 public class SysOperLogController {
 
     @Resource
-    private SysOperLogService operLogService;
+    private ISysOperLogService operLogService;
 
     @PreAuthorize("hasAuthority('system:log:list')")
     @GetMapping("/page")

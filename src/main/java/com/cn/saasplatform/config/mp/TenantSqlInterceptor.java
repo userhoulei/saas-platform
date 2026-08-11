@@ -12,6 +12,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 多租户配置类
+ * 用于配置多租户SQL拦截器，实现数据隔离
+ */
 @Configuration
 public class TenantSqlInterceptor {
 

@@ -42,36 +42,45 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Value("${jwt.header}")
-    private String headerKey;
+    private String headerKey;    // JWT token在请求头中的key名称
     @Value("${jwt.prefix}")
-    private String tokenPrefix;
+    private String tokenPrefix;  // JWT token的前缀，如"Bearer"
 
     @Resource
-    private JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;     // JWT工具类，用于token的解析和验证
 
     @Resource
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;  // JSON处理工具类
 
     @Resource
-    private SysUserMapper sysUserMapper;
+    private SysUserMapper sysUserMapper;  // 用户数据访问层
 
     @Resource
-    private SysMenuMapper sysMenuMapper;
+    private SysMenuMapper sysMenuMapper;  // 菜单/权限数据访问层
 
+    /**
+     * 过滤器核心方法
+     * @param request 当前HTTP请求
+     * @param response 当前HTTP响应
+     * @param filterChain 过滤器链
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         try {
+            // 从请求头获取token
             String token = request.getHeader(headerKey);
-            // 判断token格式
+            // 判断token格式是否正确
             if (StrUtil.isBlank(token) || !token.startsWith(tokenPrefix + " ")) {
                 filterChain.doFilter(request, response);
                 return;
             }
+            // 去除token前缀，获取纯净token
             token = token.substring(tokenPrefix.length() + 1);
+            // 解析token获取载荷
             Claims claims = jwtUtil.getClaims(token);
             if (claims == null) {
-                // token无效，返回统一json
+                // token无效，返回统一json错误响应
                 response.setContentType("application/json;charset=utf-8");
                 response.getWriter().write(objectMapper.writeValueAsString(Result.fail(ResultCode.UNAUTHORIZED)));
                 return;

@@ -18,23 +18,36 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import javax.annotation.Resource;
 
+/**
+ * Spring Security配置类
+ * 用于配置安全策略、认证方式和权限控制
+ */
 @Configuration
 @EnableWebSecurity
-// 开启注解权限 @PreAuthorize
+// 开启注解权限 @PreAuthorize，允许在方法级别进行权限控制
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+// 根据配置文件中的"app.security-enabled"属性决定是否启用安全配置
+// 默认情况下(matchIfMissing = true)启用
 @ConditionalOnProperty(prefix = "app", name = "security-enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityConfig {
 
     @Resource
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;  // JWT认证过滤器
     @Resource
-    private NoAuthEntryPoint noAuthEntryPoint;
+    private NoAuthEntryPoint noAuthEntryPoint;  // 未认证入口点处理器
     @Resource
-    private ForbiddenHandler forbiddenHandler;
+    private ForbiddenHandler forbiddenHandler;  // 权限不足处理器
 
+    /**
+     * 配置安全过滤器链
+     * @param http HttpSecurity对象，用于配置安全策略
+     * @return 配置好的SecurityFilterChain
+     * @throws Exception 可能抛出的异常
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // 禁用CSRF保护，因为是无状态的JWT认证
                 .csrf().disable()
                 // 无状态，不创建session【前后端分离JWT核心】
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

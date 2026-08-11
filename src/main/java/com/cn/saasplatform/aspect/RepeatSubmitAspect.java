@@ -21,13 +21,23 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RepeatSubmitAspect {
 
+    // Redis中防止重复提交的key前缀
     private static final String PREFIX = "repeat_submit:";
 
+    // Redis模板，用于操作Redis
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
+    /**
+     * 环绕通知，用于处理防止重复提交的逻辑
+     * @param point 连接点，可以执行目标方法
+     * @param repeatSubmit 注解，包含锁定的时长
+     * @return 目标方法的执行结果
+     * @throws Throwable 可能抛出的异常
+     */
     @Around("@annotation(repeatSubmit)")
     public Object around(ProceedingJoinPoint point, RepeatSubmit repeatSubmit) throws Throwable {
+        // 获取当前请求的属性和请求对象
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
 
@@ -37,6 +47,7 @@ public class RepeatSubmitAspect {
         String uri = request.getRequestURI();
         String key = PREFIX + tenantId + ":" + ip + ":" + uri;
 
+        // 检查Redis中是否存在该key，如果存在则说明是重复提交
         Boolean exists = redisTemplate.hasKey(key);
         if (Boolean.TRUE.equals(exists)) {
             throw new BusinessException(ResultCode.PARAM_ERROR.getCode(), "请勿重复提交请求");

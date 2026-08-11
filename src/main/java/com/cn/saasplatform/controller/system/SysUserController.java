@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cn.saasplatform.entity.system.SysUser;
 import com.cn.saasplatform.entity.dto.SysUserDTO;
 import com.cn.saasplatform.entity.resp.Result;
-import com.cn.saasplatform.service.system.SysUserService;
+import com.cn.saasplatform.service.system.ISysUserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +17,7 @@ import javax.validation.Valid;
 public class SysUserController {
 
     @Resource
-    private SysUserService sysUserService;
+    private ISysUserService sysUserService;
 
     @PreAuthorize("hasAuthority('system:user:list')")
     @GetMapping("/page")
