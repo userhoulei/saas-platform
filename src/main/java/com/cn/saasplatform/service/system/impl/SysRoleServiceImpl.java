@@ -28,7 +28,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole>
     @Resource
     private SysUserRoleMapper sysUserRoleMapper;
 
-    // ========== 新增角色并绑定菜单（事务保证原子性） ==========
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void insertRoleAndMenu(SysRole role, List<Long> menuIds) {
@@ -90,13 +89,17 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole>
         sysRoleMenuMapper.delete(rmWrapper);
     }
 
-    // ========== 根据角色ID查绑定的菜单ID ==========
+    // 根据角色ID查绑定的菜单ID
     @Override
     public List<Long> selectMenuIdsByRoleId(Long roleId) {
         LambdaQueryWrapper<SysRoleMenu> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysRoleMenu::getRoleId, roleId);
-        List<SysRoleMenu> list = sysRoleMenuMapper.selectList(wrapper);
-        return list.stream().map(SysRoleMenu::getMenuId).collect(Collectors.toList());
+        wrapper.eq(SysRoleMenu::getRoleId, roleId)
+                .select(SysRoleMenu::getMenuId); // 只查询menu_id字段
+        List<Object> objList = sysRoleMenuMapper.selectObjs(wrapper);
+        return objList.stream()
+                .map(obj -> (Long) obj)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @Override

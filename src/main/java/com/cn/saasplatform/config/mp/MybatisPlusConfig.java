@@ -15,7 +15,7 @@ import javax.annotation.Resource;
 public class MybatisPlusConfig {
 
     @Resource
-    private TenantSqlInterceptor tenantSqlInterceptor; // 注入多租户SQL拦截器
+    private MybatisPlusTenantConfig tenantSqlInterceptor; // 注入多租户SQL拦截器
 
     /**
      * 配置MyBatis-Plus拦截器

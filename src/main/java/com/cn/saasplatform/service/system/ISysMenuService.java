@@ -32,7 +32,7 @@ public interface ISysMenuService extends IService<SysMenu> {
 
     void deleteMenuById(Long menuId);
 
-    List<SysMenu> buildRoleMenuTree(Long tenantId);
+    List<SysMenu> buildRoleMenuTree();
 
     /**
      * 查询该菜单ID是否被任意角色关联绑定

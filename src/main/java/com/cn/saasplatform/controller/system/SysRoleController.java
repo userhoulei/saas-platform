@@ -1,15 +1,16 @@
 package com.cn.saasplatform.controller.system;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cn.saasplatform.entity.system.SysMenu;
 import com.cn.saasplatform.entity.system.SysRole;
-import com.cn.saasplatform.entity.system.SysUser;
 import com.cn.saasplatform.service.system.ISysMenuService;
 import com.cn.saasplatform.service.system.ISysRoleService;
 import com.cn.saasplatform.util.TenantContextUtil;
 import com.cn.saasplatform.entity.resp.Result;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
@@ -28,27 +29,50 @@ public class SysRoleController {
     @Resource
     private ISysMenuService sysMenuService;
 
-/*    @GetMapping("/list")
-    @PreAuthorize("hasPermission('system:role:list')")
-    public Result<PageResult<SysRole>> list(
-            @RequestParam(defaultValue = "1") Long pageNum,
-            @RequestParam(defaultValue = "10") Long pageSize,
-            @RequestParam(required = false) String roleName,
-            @RequestParam(required = false) Integer status
+    /**
+     * 获取角色列表接口
+     *
+     * @param pageNum  页码，默认为1
+     * @param pageSize 每页大小，默认为10
+     * @param roleName 角色名称（可选），用于模糊查询
+     * @param status   状态（可选），用于精确匹配
+     * @return 返回分页后的角色数据
+     */
+    @GetMapping("/list")
+    @PreAuthorize("hasAuthority('system:role:list')")  // 权限校验，需要拥有system:role:list权限
+    public Result<Page<SysRole>> list(
+            @RequestParam(defaultValue = "1") Long pageNum,    // 页码参数，默认值为1
+            @RequestParam(defaultValue = "10") Long pageSize,    // 每页大小参数，默认值为10
+            @RequestParam(required = false) String roleName,    // 角色名称参数，非必需
+            @RequestParam(required = false) Integer status       // 状态参数，非必需
     ) {
-        PageResult<SysRole> page = sysRoleService.selectRolePage(pageNum, pageSize, roleName, status);
-        return Result.success(page);
-    }*/
+        // 创建分页对象
+        Page<SysRole> page = new Page<>(pageNum, pageSize);
+        // 创建Lambda查询条件构造器
+        LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
 
+        queryWrapper.like(roleName != null && !roleName.isEmpty(), SysRole::getRoleName, roleName);
+        queryWrapper.eq(status != null, SysRole::getStatus, status);
+
+        Page<SysRole> res = sysRoleService.page(page, queryWrapper);
+        return Result.success(res);
+    }
+
+    /**
+     * 根据角色ID查询角色信息
+     *
+     * @param roleId 角色ID，通过路径变量传递
+     * @return 返回查询到的角色信息，封装在Result对象中
+     */
     @GetMapping("/{roleId}")
-    @PreAuthorize("hasPermission('system:role:query')")
+    @PreAuthorize("hasAuthority('system:role:query')")
     public Result<SysRole> getInfo(@PathVariable Long roleId) {
         SysRole role = sysRoleService.getById(roleId);
         return Result.success(role);
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasPermission('system:role:add')")
+    @PreAuthorize("hasAuthority('system:role:add')")
     public Result<Void> add(
             @Valid @RequestBody SysRole sysRole,
             @RequestParam List<Long> menuIds
@@ -63,7 +87,7 @@ public class SysRoleController {
     }
 
     @PutMapping("/edit")
-    @PreAuthorize("hasPermission('system:role:edit')")
+    @PreAuthorize("hasAuthority('system:role:edit')")
     public Result<Void> edit(
             @Valid @RequestBody SysRole sysRole,
             @RequestParam List<Long> menuIds
@@ -75,7 +99,7 @@ public class SysRoleController {
     }
 
     @DeleteMapping("/remove/{roleIds}")
-    @PreAuthorize("hasPermission('system:role:remove')")
+    @PreAuthorize("hasAuthority('system:role:remove')")
     public Result<Void> remove(@PathVariable List<Long> roleIds) {
         // 1. 校验是否被用户绑定（如果角色已分配给用户，禁止删除）
         sysRoleService.checkRoleUsed(roleIds);
@@ -84,18 +108,28 @@ public class SysRoleController {
         return Result.success();
     }
 
-    @GetMapping("/menuIds/{roleId}")
-    @PreAuthorize("hasPermission('system:role:query')")
-    public Result<List<Long>> getRoleBindMenuIds(@PathVariable Long roleId) {
-        List<Long> menuIdList = sysRoleService.selectMenuIdsByRoleId(roleId);
-        return Result.success(menuIdList);
+    /**
+     * 根据角色 ID 回显已绑定菜单 ID
+     *
+     * @param roleId 角色ID，通过路径变量传递
+     * @return 菜单ID列表
+     */
+    @GetMapping("/role/{roleId}")
+    public Result<List<Long>> getRoleMenuIds(@PathVariable Long roleId) {
+        return Result.success(sysRoleService.selectMenuIdsByRoleId(roleId));
     }
 
+    /**
+     * 获取菜单树结构接口
+     * 该接口用于获取系统菜单的树形结构数据
+     * 需要用户拥有'system:role:list'权限才能访问
+     *
+     * @return 菜单树结构数据
+     */
     @GetMapping("/menuTree")
-    @PreAuthorize("hasPermission('system:role:query')")
-    public Result<List<SysMenu>> getRoleMenuTree() {
-        Long tenantId = TenantContextUtil.getTenantId();
-        List<SysMenu> tree = sysMenuService.buildRoleMenuTree(tenantId);
+    @PreAuthorize("hasAuthority('system:role:query')")
+    public Result<List<SysMenu>> getMenuTree() {
+        List<SysMenu> tree = sysMenuService.buildRoleMenuTree();
         return Result.success(tree);
     }
 }

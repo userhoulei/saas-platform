@@ -2,7 +2,7 @@ package com.cn.saasplatform.entity.system;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.cn.saasplatform.entity.BaseEntity;
+import com.cn.saasplatform.entity.base.BaseEntity;
 import lombok.Data;
 import java.util.List;
 

@@ -1,19 +1,29 @@
 package com.cn.saasplatform.service.system.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cn.saasplatform.entity.system.SysMenu;
 import com.cn.saasplatform.mapper.system.SysMenuMapper;
 import com.cn.saasplatform.service.system.ISysMenuService;
+import com.cn.saasplatform.service.platform.ITenantPackageService;
+import com.cn.saasplatform.util.TenantContextUtil;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
         implements ISysMenuService {
+
+    @Resource
+    private ITenantPackageService tenantPackageService;
+
 
     @Override
     public void addMenu(SysMenu sysMenu) {
@@ -44,7 +54,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     @Override
     public List<SysMenu> getMenuTree() {
         // 查询所有状态为1（正常）的菜单列表
-        List<SysMenu> allList = list(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getStatus, 1));
+        List<SysMenu> allList = list(new LambdaQueryWrapper<SysMenu>()
+                .eq(SysMenu::getStatus, 1));  // 设置状态条件为1（正常）
         // 调用buildTree方法构建树形结构，0L表示顶级菜单的父ID
         return buildTree(allList, 0L);
     }
@@ -72,8 +83,33 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu>
     }
 
     @Override
-    public List<SysMenu> buildRoleMenuTree(Long tenantId) {
-        return List.of();
+    /**
+     * 构建角色菜单树形结构
+     * @return 返回构建好的菜单树形结构列表
+     */
+    public List<SysMenu> buildRoleMenuTree() {
+        // 获取当前租户ID
+        Long tenantId = TenantContextUtil.getTenantId();
+        LambdaQueryWrapper<SysMenu> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysMenu::getStatus, 1);
+
+        // 平台超级管理员：查询全部平台菜单
+        if (Long.valueOf(0).equals(tenantId)) {
+            List<SysMenu> allMenu = list(wrapper);
+            return buildTree(allMenu, 0L);
+        }
+
+        // 租户管理员：走套餐过滤，只查套餐授权的菜单
+        // 1. 调用套餐服务，获取租户可用菜单ID
+        List<Long> allowMenuIds = tenantPackageService.getTenantAllowMenuIdList(tenantId);
+        if (CollectionUtils.isEmpty(allowMenuIds)) {
+            return Collections.emptyList();
+        }
+        // 2. IN 过滤平台全局菜单（sys_menu 全部 tenant_id=0）
+        wrapper.in(SysMenu::getId, allowMenuIds);
+        List<SysMenu> tenantCanUseMenu = list(wrapper);
+
+        return buildTree(tenantCanUseMenu, 0L);
     }
 
     @Override
